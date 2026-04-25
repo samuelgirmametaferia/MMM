@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMM Explorer</title>
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem("mmm-theme") || "dark";
+                document.documentElement.setAttribute("data-theme", t);
+                document.documentElement.style.backgroundColor = t === "light" ? "#fff7ee" : "#0f1115";
+            } catch (_e) {
+                document.documentElement.setAttribute("data-theme", "dark");
+                document.documentElement.style.backgroundColor = "#0f1115";
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body data-view="explorer">
+    <div class="app-shell postfx" id="appShell">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand-row">
+                <button class="icon-btn" id="sidebarToggle" title="Toggle Sidebar">
+                    <svg><use href="#icon-sidebar"></use></svg>
+                </button>
+                <span class="brand-title">MMM</span>
+            </div>
+
+            <div class="sidebar-section">
+                <button class="section-toggle" data-target="favorites">Favorites</button>
+                <nav id="favorites" class="section-items">
+                    <a href="index.html" class="nav-item active" data-path="/Home">
+                        <svg><use href="#icon-home"></use></svg>
+                        <span>Home</span>
+                    </a>
+                    <button class="nav-item" data-path="/Home/workspace">
+                        <svg><use href="#icon-folder"></use></svg>
+                        <span>Projects</span>
+                    </button>
+                    <button class="nav-item" data-path="/Home/Downloads">
+                        <svg><use href="#icon-folder"></use></svg>
+                        <span>Downloads</span>
+                    </button>
+                    <button class="nav-item" data-path="/Home/Recycle Bin">
+                        <svg><use href="#icon-trash"></use></svg>
+                        <span>Recycle Bin</span>
+                    </button>
+                </nav>
+                <button class="add-location" id="addLocationBtn">
+                    <svg><use href="#icon-add-folder"></use></svg>
+                    <span>Add Location</span>
+                </button>
+            </div>
+
+            <div class="sidebar-section">
+                <button class="section-toggle" data-target="drives">Drives</button>
+                <nav id="drives" class="section-items">
+                    <button class="nav-item" data-path="/Home">
+                        <svg><use href="#icon-folder-open"></use></svg>
+                        <span>Root</span>
+                    </button>
+                    <button class="nav-item" data-path="/Home/Network Bin">
+                        <svg><use href="#icon-folder"></use></svg>
+                        <span>Network Bin</span>
+                    </button>
+                </nav>
+            </div>
+
+            <div class="sidebar-bottom">
+                <a href="settings.html" class="nav-item" data-view-link="settings">
+                    <svg><use href="#icon-settings"></use></svg>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-pane">
+            <header class="topbar" id="topDropArea">
+                <div class="tab-strip" id="tabStrip"></div>
+                <div class="toolbar">
+                    <button class="icon-btn" id="searchToggle" title="Search">
+                        <svg><use href="#icon-search"></use></svg>
+                    </button>
+                    <button class="icon-btn" id="newTabBtn" title="New Tab">
+                        <svg><use href="#icon-plus"></use></svg>
+                    </button>
+                    <button class="icon-btn" id="newWindowBtn" title="New Window">
+                        <svg><use href="#icon-split"></use></svg>
+                    </button>
+                    <button class="icon-btn" id="refreshBtn" title="Refresh">
+                        <svg><use href="#icon-refresh"></use></svg>
+                    </button>
+                    <button class="icon-btn" id="recentsBtn" title="Recent">
+                        <svg><use href="#icon-clock"></use></svg>
+                    </button>
+                    <button class="icon-btn" id="newFolderBtn" title="New Folder">
+                        <svg><use href="#icon-add-folder"></use></svg>
+                    </button>
+                    <button class="icon-btn" id="newFileBtn" title="New File">
+                        <svg><use href="#icon-file"></use></svg>
+                    </button>
+                    <button class="icon-btn" id="historyToggleBtn" title="IO History Timeline">
+                        <svg><use href="#icon-clock"></use></svg>
+                    </button>
+                    <button class="icon-btn" id="splitToggle" title="Split Pane">
+                        <svg><use href="#icon-split"></use></svg>
+                    </button>
+                    <button class="icon-btn" id="previewPaneToggle" title="Toggle Preview Pane">
+                        <svg><use href="#icon-eye"></use></svg>
+                    </button>
+                    <button class="icon-btn" id="themeToggle" title="Theme">
+                        <svg><use href="#icon-settings"></use></svg>
+                    </button>
+                </div>
+            </header>
+
+            <div class="address-wrap" id="addressWrap">
+                <button class="icon-btn slim" id="backBtn" title="Back">
+                    <svg><use href="#icon-chevron-left"></use></svg>
+                </button>
+                <button class="icon-btn slim" id="forwardBtn" title="Forward">
+                    <svg><use href="#icon-chevron-right"></use></svg>
+                </button>
+                <div class="address-bar" id="addressBar" title="Double-click to edit path">
+                    <div id="breadcrumbs" class="breadcrumbs"></div>
+                    <input id="pathInput" class="path-input hidden" aria-label="Path Input" />
+                </div>
+            </div>
+
+            <div class="workspace" id="workspace">
+                <section class="panel" id="explorerPanel">
+                    <div class="panel-toolbar">
+                        <div class="segmented" id="viewModeToggle">
+                            <button data-mode="grid" class="active"><svg><use href="#icon-grid"></use></svg></button>
+                            <button data-mode="list"><svg><use href="#icon-list"></use></svg></button>
+                            <button data-mode="details"><svg><use href="#icon-details"></use></svg></button>
+                        </div>
+                        <div class="status-badges">
+                            <span class="badge">Double-click to open</span>
+                            <span class="badge">Ctrl/Cmd + click multi-select</span>
+                        </div>
+                    </div>
+                    <div class="file-region" id="fileRegion"></div>
+                </section>
+
+                <section class="panel hidden" id="settingsPanel">
+                    <h2>Settings</h2>
+                    <div class="settings-tabs" id="settingsTabs">
+                        <button class="active" data-settings-tab="general">General</button>
+                        <button data-settings-tab="shortcuts">Shortcuts</button>
+                        <button data-settings-tab="context">Context</button>
+                        <button data-settings-tab="icons">Icons</button>
+                        <button data-settings-tab="history">History</button>
+                        <button data-settings-tab="system">System</button>
+                    </div>
+                    <div class="settings-grid settings-section" data-settings-section="general">
+                        <label><span>Theme</span><select id="themeSelect"><option value="dark">Dark Monotone</option><option value="light">Light Orange</option></select></label>
+                        <label><span>Sidebar Auto Hide</span><input type="checkbox" id="autoHideCheckbox" checked></label>
+                        <label><span>Show Hidden Files</span><input type="checkbox" id="hiddenCheckbox"></label>
+                        <label><span>Default View</span><select id="defaultViewSelect"><option value="grid">Grid</option><option value="list">List</option><option value="details">Details</option></select></label>
+                        <label><span>Expanded Context Menu</span><input type="checkbox" id="contextExpandedCheckbox" /></label>
+                    </div>
+                    <div class="settings-grid settings-section hidden" data-settings-section="shortcuts">
+                        <label><span>Spotlight Shortcut</span><input type="text" id="shortcutSpotlight" value="Ctrl+K" /></label>
+                        <label><span>New Tab Shortcut</span><input type="text" id="shortcutNewTab" value="Ctrl+T" /></label>
+                        <label><span>New Folder Shortcut</span><input type="text" id="shortcutNewFolder" value="Ctrl+N" /></label>
+                        <label><span>New File Shortcut</span><input type="text" id="shortcutNewFile" value="Ctrl+Shift+N" /></label>
+                        <label><span>Refresh Shortcut</span><input type="text" id="shortcutRefresh" value="Ctrl+R" /></label>
+                        <label><span>Toggle Preview Shortcut</span><input type="text" id="shortcutPreview" value="Ctrl+P" /></label>
+                        <label><span>Back Shortcut</span><input type="text" id="shortcutBack" value="Alt+ArrowLeft" /></label>
+                        <label><span>Forward Shortcut</span><input type="text" id="shortcutForward" value="Alt+ArrowRight" /></label>
+                        <label><span>Copy Shortcut</span><input type="text" id="shortcutCopy" value="Ctrl+C" /></label>
+                        <label><span>Cut Shortcut</span><input type="text" id="shortcutCut" value="Ctrl+X" /></label>
+                        <label><span>Paste Shortcut</span><input type="text" id="shortcutPaste" value="Ctrl+V" /></label>
+                        <label><span>Undo Shortcut</span><input type="text" id="shortcutUndo" value="Ctrl+Z" /></label>
+                        <label><span>Redo Shortcut</span><input type="text" id="shortcutRedo" value="Ctrl+Y" /></label>
+                        <label><span>Rename Shortcut</span><input type="text" id="shortcutRename" value="F2" /></label>
+                        <label><span>Delete Shortcut</span><input type="text" id="shortcutDelete" value="Delete" /></label>
+                        <label><span>Select All Shortcut</span><input type="text" id="shortcutSelectAll" value="Ctrl+A" /></label>
+                        <label><span>Duplicate Shortcut</span><input type="text" id="shortcutDuplicate" value="Ctrl+D" /></label>
+                        <label><span>Toggle History Shortcut</span><input type="text" id="shortcutHistory" value="Ctrl+H" /></label>
+                        <label><span>Toggle Terminal Shortcut</span><input type="text" id="shortcutTerminal" value="Ctrl+`" /></label>
+                    </div>
+                    <div class="settings-grid settings-section hidden" style="padding-top:0;" data-settings-section="context">
+                        <label style="display:grid; grid-template-columns:1fr; gap:6px; align-items:start;">
+                            <span>Context Actions JSON</span>
+                            <textarea id="contextActionsInput" rows="6" placeholder='{"open":{"label":"Open","icon":"icon-folder","enabled":true}}'></textarea>
+                        </label>
+                        <button class="icon-btn" id="saveContextActionsBtn" title="Save Context Actions">Save Context Actions</button>
+                        <label style="display:grid; grid-template-columns:1fr; gap:6px; align-items:start;">
+                            <span>Custom Actions JSON</span>
+                            <textarea id="customContextActionsInput" rows="6" placeholder='[{"id":"open-vscode","label":"Open with VS Code","icon":"icon-file-code","command":"open:vscode://file/{{path}}","requiresSelection":true}]'></textarea>
+                        </label>
+                        <button class="icon-btn" id="saveCustomContextActionsBtn" title="Save Custom Actions">Save Custom Actions</button>
+                        <div class="template-tools" id="customActionTemplates">
+                            <span class="muted">Quick Templates</span>
+                            <div class="template-actions">
+                                <button class="icon-btn" id="addTemplateVsCodeBtn" title="Add Open with VS Code">Open with VS Code</button>
+                                <button class="icon-btn" id="addTemplateTerminalBtn" title="Add Open Terminal Here">Open Terminal Here</button>
+                                <button class="icon-btn" id="addTemplateBrowserBtn" title="Add Open in Browser">Open in Browser</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-grid settings-section hidden" style="padding-top:0;" data-settings-section="icons">
+                        <label style="display:grid; grid-template-columns:1fr; gap:6px; align-items:start;">
+                            <span>File Icon Rules JSON (ext -> icon)</span>
+                            <textarea id="fileIconRulesInput" rows="5" placeholder='{"js":"icon-file-code","md":"icon-file"}'></textarea>
+                        </label>
+                        <button class="icon-btn" id="saveFileIconRulesBtn" title="Save File Icon Rules">Save File Icon Rules</button>
+                        <label style="display:grid; grid-template-columns:1fr; gap:6px; align-items:start;">
+                            <span>Sidebar Icon Rules JSON (key -> icon)</span>
+                            <textarea id="sidebarIconRulesInput" rows="5" placeholder='{"Home":"icon-home","Downloads":"icon-folder-open"}'></textarea>
+                        </label>
+                        <button class="icon-btn" id="saveSidebarIconRulesBtn" title="Save Sidebar Icon Rules">Save Sidebar Icon Rules</button>
+                        <div class="icon-importer">
+                            <div class="muted">Icon Importer</div>
+                            <label><span>Icon Key</span><input type="text" id="iconImportKeyInput" placeholder="project-logo" /></label>
+                            <label><span>Upload PNG/JPG/SVG</span><input type="file" id="iconImportFileInput" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml" /></label>
+                            <button class="icon-btn" id="importIconFileBtn" title="Import Icon File">Import File Icon</button>
+                            <label style="display:grid; grid-template-columns:1fr; gap:6px; align-items:start;">
+                                <span>Paste SVG Markup</span>
+                                <textarea id="iconImportSvgInput" rows="5" placeholder="<svg viewBox='0 0 24 24'>...</svg>"></textarea>
+                            </label>
+                            <button class="icon-btn" id="importIconSvgBtn" title="Import SVG Markup">Import SVG Markup</button>
+                            <div class="imported-icons" id="importedIconsList"></div>
+                        </div>
+                    </div>
+                    <div class="settings-grid settings-section hidden" style="padding-top:0;" data-settings-section="history">
+                        <label><span>Enable IO History</span><input type="checkbox" id="ioHistoryEnabledCheckbox" checked></label>
+                        <label><span>IO History Limit</span><input type="number" id="ioHistoryLimitInput" min="10" max="500" value="140" /></label>
+                        <label><span>Timeline Limit</span><input type="number" id="ioTimelineLimitInput" min="10" max="500" value="140" /></label>
+                        <label><span>Recycle Retention Days</span><input type="number" id="recycleRetentionDaysInput" min="1" max="3650" value="30" /></label>
+                        <label><span>Recycle Max Items</span><input type="number" id="recycleMaxItemsInput" min="10" max="50000" value="1000" /></label>
+                        <div class="template-actions" id="operationQueueControls">
+                            <button class="icon-btn" id="queuePauseBtn" title="Pause or Resume Queue">Pause Queue</button>
+                            <button class="icon-btn" id="queueClearBtn" title="Clear Pending Queue">Clear Queue</button>
+                        </div>
+                    </div>
+                    <div class="settings-grid settings-section hidden" style="padding-top:0;" data-settings-section="system">
+                        <div class="muted" style="grid-column:1 / -1;">Virtual filesystem mapping and native host info.</div>
+                        <label><span>Virtual Root</span><input type="text" id="sysVirtualRoot" value="/Home" readonly /></label>
+                        <label><span>Mapped Real Root</span><input type="text" id="sysRealRoot" placeholder="~" /></label>
+                        <div class="template-actions" style="grid-column:1 / -1;">
+                            <button class="icon-btn" id="sysApplyRootBtn" title="Apply Root Mapping">Apply Root</button>
+                            <button class="icon-btn" id="sysResetRootBtn" title="Reset Root to ~">Reset to ~</button>
+                            <button class="icon-btn" id="sysRefreshInfoBtn" title="Refresh System Info">Refresh Info</button>
+                        </div>
+                        <label style="display:grid; grid-template-columns:1fr; gap:6px; align-items:start; grid-column:1 / -1;">
+                            <span>System Info</span>
+                            <textarea id="sysInfoOutput" rows="10" readonly spellcheck="false" placeholder="(native host not connected)"></textarea>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="panel hidden" id="propertiesPanel">
+                    <h2>Properties</h2>
+                    <div class="properties-table" id="propertiesTable"></div>
+                </section>
+
+                <aside class="preview-pane" id="previewPane">
+                    <div class="preview-header">
+                        <span>Preview</span>
+                        <button class="icon-btn slim" id="previewToggle" title="Toggle Preview"><svg><use href="#icon-eye"></use></svg></button>
+                    </div>
+                    <div class="preview-body" id="previewBody">Select a file to preview metadata.</div>
+                </aside>
+
+                <aside class="history-panel hidden" id="historyPanel">
+                    <div class="history-head">
+                        <span>IO Timeline</span>
+                        <button class="icon-btn slim" id="historyCloseBtn" title="Close History"><svg><use href="#icon-close"></use></svg></button>
+                    </div>
+                    <div class="history-split">
+                        <div class="history-list" id="historyList"></div>
+                        <div class="history-diff" id="historyDiff">Select a timeline state to view summary diff.</div>
+                    </div>
+                </aside>
+            </div>
+
+            <footer class="terminal" id="terminalPane">
+                <div class="terminal-resizer" id="terminalResizer"></div>
+                <div class="terminal-head">
+                    <svg><use href="#icon-terminal"></use></svg>
+                    <span>Integrated Terminal</span>
+                </div>
+                <div class="terminal-body" id="terminalBody">
+                    <div class="terminal-output" id="terminalOutput"></div>
+                    <div class="terminal-input-row">
+                        <span class="muted" id="cwdLabel">cwd: /Home</span>
+                        <span>$</span>
+                        <input id="terminalInput" class="terminal-input" autocomplete="off" spellcheck="false" placeholder="Type a command (help)" />
+                        <button class="icon-btn slim" id="terminalRunBtn" title="Run Command">Run</button>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <button class="terminal-launcher" id="terminalLauncherBtn" title="Open Terminal">
+        <svg><use href="#icon-chevron-left"></use></svg>
+    </button>
+
+    <div class="spotlight hidden" id="spotlight">
+        <div class="spotlight-box">
+            <div class="spotlight-input-wrap">
+                <svg><use href="#icon-search"></use></svg>
+                <input id="spotlightInput" placeholder="Search files, folders, and commands" />
+            </div>
+            <div class="spotlight-options">
+                <button data-filter="type:folder">type:folder</button>
+                <button data-filter="type:file">type:file</button>
+                <button data-filter="ext:js">ext:js</button>
+                <button data-filter="regex:on">regex:on</button>
+            </div>
+            <div class="spotlight-results" id="spotlightResults"></div>
+        </div>
+    </div>
+
+    <ul class="context-menu hidden" id="contextMenu">
+        <li data-action="open">Open</li>
+        <li data-action="openNewTab">Open in New Tab</li>
+        <li data-action="addFavorite">Add to Favorites</li>
+        <li data-action="setFolderIcon">Set Folder Icon</li>
+        <li data-action="setSidebarIcon">Set Sidebar Icon</li>
+        <li data-action="rename">Rename</li>
+        <li data-action="duplicate">Duplicate</li>
+        <li data-action="copyItem">Copy</li>
+        <li data-action="cutItem">Cut</li>
+        <li data-action="pasteItem">Paste</li>
+        <li data-action="moveTo">Move To Path...</li>
+        <li data-action="copyPath">Copy Path</li>
+        <li data-action="properties">Properties</li>
+        <li class="menu-separator" role="separator" aria-hidden="true"></li>
+        <li data-action="newFolder">New Folder</li>
+        <li data-action="newFile">New File</li>
+        <li data-action="selectAll">Select All</li>
+        <li data-action="undo">Undo</li>
+        <li data-action="redo">Redo</li>
+        <li data-action="refresh">Refresh</li>
+        <li data-action="delete">Delete</li>
+        <li data-action="restoreItem">Restore from Recycle Bin</li>
+        <li data-action="emptyRecycleBin">Empty Recycle Bin</li>
+    </ul>
+
+    <div class="operation-popup hidden" id="operationPopup">
+        <div class="operation-popup-title" id="operationPopupTitle">Operation</div>
+        <div class="operation-popup-body" id="operationPopupBody">No operations yet.</div>
+        <div class="operation-popup-actions">
+            <button class="icon-btn" id="operationUndoBtn" title="Undo">Undo</button>
+            <button class="icon-btn" id="operationRedoBtn" title="Redo">Redo</button>
+            <button class="icon-btn" id="operationPopupCloseBtn" title="Close">Close</button>
+        </div>
+    </div>
+
+    <div class="dialog-overlay hidden" id="newFolderDialog">
+        <div class="dialog-card">
+            <h3>New Folder</h3>
+            <p>Create a new folder in the current path.</p>
+            <label class="dialog-field"><span>Name</span><input id="newFolderNameInput" type="text" value="new-folder" /></label>
+            <div class="dialog-actions">
+                <button class="icon-btn" id="newFolderCancelBtn" title="Cancel">Cancel</button>
+                <button class="icon-btn" id="newFolderCreateBtn" title="Create">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dialog-overlay hidden" id="newFileDialog">
+        <div class="dialog-card">
+            <h3>New File</h3>
+            <p>Create a new file in the current path.</p>
+            <label class="dialog-field"><span>Name</span><input id="newFileNameInput" type="text" value="untitled.txt" /></label>
+            <div class="dialog-actions">
+                <button class="icon-btn" id="newFileCancelBtn" title="Cancel">Cancel</button>
+                <button class="icon-btn" id="newFileCreateBtn" title="Create">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="MJSI.js"></script>
+    <script src="scripts.js"></script>
+</body>
+</html>

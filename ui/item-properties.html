@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MMM Item Properties</title>
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("mmm-theme") || "dark";
+        document.documentElement.setAttribute("data-theme", t);
+        document.documentElement.style.backgroundColor = t === "light" ? "#fff7ee" : "#0f1115";
+      } catch (_e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.style.backgroundColor = "#0f1115";
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="main-pane" style="grid-template-rows: 46px 1fr; height: 100vh;">
+    <header class="topbar">
+      <div class="tab-strip"><div class="tab active"><button class="tab-open"><span>Item Properties</span></button></div></div>
+      <div class="toolbar">
+        <button class="icon-btn" id="copyPathBtn" title="Copy Path"><svg><use href="#icon-file"></use></svg></button>
+        <button class="icon-btn" id="closeBtn" title="Close"><svg><use href="#icon-close"></use></svg></button>
+      </div>
+    </header>
+
+    <section class="panel" style="grid-template-rows: 1fr; border-right: 0;">
+      <div class="properties-table" id="propertiesTable"></div>
+    </section>
+  </main>
+
+  <script>
+    const savedTheme = localStorage.getItem('mmm-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    const table = document.getElementById('propertiesTable');
+    const params = new URLSearchParams(window.location.search);
+    let payload = null;
+
+    try {
+      payload = JSON.parse(params.get('item') || '{}');
+    } catch (_err) {
+      payload = null;
+    }
+
+    const fallback = {
+      name: 'Unknown',
+      type: 'unknown',
+      ext: '--',
+      size: '--',
+      modified: '--',
+      git: '--',
+      path: '--'
+    };
+
+    const item = Object.assign({}, fallback, payload || {});
+    const rows = [
+      ['Name', item.name],
+      ['Type', item.type],
+      ['Extension', item.ext || '--'],
+      ['Size', item.size || '--'],
+      ['Modified', item.modified || '--'],
+      ['Git Status', item.git || '--'],
+      ['Path', item.path || '--']
+    ];
+
+    table.innerHTML = rows
+      .map(([k, v]) => `<div class=\"properties-row\"><span class=\"muted\">${k}</span><span>${v}</span></div>`)
+      .join('');
+
+    const copyPathBtn = document.getElementById('copyPathBtn');
+    if (copyPathBtn) {
+      copyPathBtn.addEventListener('click', () => {
+        const text = item.path || '--';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text);
+        }
+      });
+    }
+
+    const closeBtn = document.getElementById('closeBtn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => window.close());
+    }
+  </script>
+</body>
+</html>

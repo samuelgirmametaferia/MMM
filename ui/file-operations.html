@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MMM File Operations Center</title>
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("mmm-theme") || "dark";
+        document.documentElement.setAttribute("data-theme", t);
+        document.documentElement.style.backgroundColor = t === "light" ? "#fff7ee" : "#0f1115";
+      } catch (_e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.style.backgroundColor = "#0f1115";
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .ops-wrap {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 12px;
+      padding: 12px;
+      min-height: 0;
+      overflow: auto;
+    }
+    .ops-card {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+    .ops-row {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+    .ops-row input,
+    .ops-row select {
+      height: 26px;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      color: var(--text);
+      padding: 0 6px;
+      font: inherit;
+    }
+    .ops-result {
+      min-height: 160px;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      padding: 8px;
+      white-space: pre-wrap;
+      color: var(--muted);
+    }
+    .edge-grid {
+      display: grid;
+      gap: 6px;
+    }
+    .edge-item {
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      padding: 8px;
+      display: grid;
+      gap: 4px;
+    }
+  </style>
+</head>
+<body>
+  <main class="main-pane" style="grid-template-rows: 46px 1fr; height: 100vh;">
+    <header class="topbar">
+      <div class="tab-strip"><div class="tab active"><button class="tab-open"><span>Operations Center</span></button></div></div>
+      <div class="toolbar">
+        <button class="icon-btn" id="closeBtn" title="Close"><svg><use href="#icon-close"></use></svg></button>
+      </div>
+    </header>
+
+    <section class="ops-wrap">
+      <article class="ops-card">
+        <h3 style="margin:0;">Operation Simulator</h3>
+        <div class="ops-row"><span>Operation</span><select id="opType"><option>copy</option><option>move</option><option>cut + paste</option><option>rename</option><option>delete</option></select></div>
+        <div class="ops-row"><span>Source Path</span><input id="sourcePath" value="/Home/workspace/src" /></div>
+        <div class="ops-row"><span>Target Path</span><input id="targetPath" value="/Home/workspace/docs" /></div>
+        <div class="ops-row"><span>Item Name</span><input id="itemName" value="main.js" /></div>
+        <div class="ops-row"><span>Item Type</span><select id="itemType"><option>file</option><option>folder</option></select></div>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button class="icon-btn" id="simulateBtn" style="width:auto; padding:0 10px;">Simulate</button>
+        </div>
+        <div class="ops-result" id="opsResult">Run simulation to inspect edge-case handling.</div>
+      </article>
+
+      <article class="ops-card">
+        <h3 style="margin:0;">Edge-Case Coverage</h3>
+        <div class="edge-grid">
+          <div class="edge-item"><strong>Name collision</strong><span class="muted">Auto-rename with (2), (3), ... suffixes.</span></div>
+          <div class="edge-item"><strong>Cut into same folder</strong><span class="muted">No-op to prevent duplicate/remove errors.</span></div>
+          <div class="edge-item"><strong>Move folder into itself</strong><span class="muted">Blocked if target is inside source subtree.</span></div>
+          <div class="edge-item"><strong>Paste with empty clipboard</strong><span class="muted">Ignored safely without side effects.</span></div>
+          <div class="edge-item"><strong>Missing target path</strong><span class="muted">Created automatically before paste/move.</span></div>
+          <div class="edge-item"><strong>Unsupported extension</strong><span class="muted">Falls back to generic file handling.</span></div>
+          <div class="edge-item"><strong>Folder subtree copy/move</strong><span class="muted">Descendant directories cloned/moved with entries.</span></div>
+          <div class="edge-item"><strong>Mixed multi-selection</strong><span class="muted">Operations process files and folders together.</span></div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const sourcePath = document.getElementById('sourcePath');
+    const targetPath = document.getElementById('targetPath');
+    const itemName = document.getElementById('itemName');
+    const itemType = document.getElementById('itemType');
+    const opType = document.getElementById('opType');
+    const result = document.getElementById('opsResult');
+
+    function startsWithPath(parent, child) {
+      return child === parent || child.startsWith(parent + '/');
+    }
+
+    function simulate() {
+      const src = (sourcePath.value || '').trim();
+      const dst = (targetPath.value || '').trim();
+      const name = (itemName.value || '').trim();
+      const type = itemType.value;
+      const op = opType.value;
+
+      if (!src || !name) {
+        result.textContent = 'Missing required values: source path and item name.';
+        return;
+      }
+
+      const sourceItemPath = src + '/' + name;
+      const targetItemPath = (dst || '(none)') + '/' + name;
+      const lines = [];
+
+      lines.push('Operation: ' + op);
+      lines.push('Item: ' + name + ' (' + type + ')');
+      lines.push('Source: ' + src);
+      lines.push('Target: ' + (dst || '(none)'));
+      lines.push('');
+
+      if ((op === 'move' || op === 'cut + paste') && src === dst) {
+        lines.push('- No-op: source and target are identical.');
+      }
+
+      if ((op === 'move' || op === 'cut + paste' || op === 'copy') && type === 'folder' && dst && startsWithPath(sourceItemPath, targetItemPath)) {
+        lines.push('- Blocked: cannot place a folder inside itself.');
+      }
+
+      if ((op === 'copy' || op === 'move' || op === 'cut + paste') && !dst) {
+        lines.push('- Blocked: destination path is required.');
+      }
+
+      if (op === 'rename' && name.indexOf('/') !== -1) {
+        lines.push('- Blocked: rename cannot include path separators.');
+      }
+
+      lines.push('- Conflict handling: if destination already has this name, create name + (2), (3), ...');
+      lines.push('- Directory handling: subtree entries are copied/moved for folders.');
+      lines.push('- Clipboard handling: empty clipboard is ignored without changes.');
+
+      result.textContent = lines.join('\n');
+    }
+
+    document.getElementById('simulateBtn').addEventListener('click', simulate);
+    document.getElementById('closeBtn').addEventListener('click', () => window.close());
+  </script>
+</body>
+</html>

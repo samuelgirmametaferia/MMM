@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMM Properties</title>
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem("mmm-theme") || "dark";
+                document.documentElement.setAttribute("data-theme", t);
+                document.documentElement.style.backgroundColor = t === "light" ? "#fff7ee" : "#0f1115";
+            } catch (_e) {
+                document.documentElement.setAttribute("data-theme", "dark");
+                document.documentElement.style.backgroundColor = "#0f1115";
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body data-view="properties">
+    <div class="app-shell postfx" id="appShell">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand-row">
+                <button class="icon-btn" id="sidebarToggle" title="Toggle Sidebar"><svg><use href="#icon-sidebar"></use></svg></button>
+                <span class="brand-title">MMM</span>
+            </div>
+            <div class="sidebar-section">
+                <button class="section-toggle" data-target="favorites">Favorites</button>
+                <nav id="favorites" class="section-items">
+                    <a href="index.html" class="nav-item" data-path="Home"><svg><use href="#icon-home"></use></svg><span>Home</span></a>
+                    <button class="nav-item" data-path="Projects"><svg><use href="#icon-folder"></use></svg><span>Projects</span></button>
+                </nav>
+                <button class="add-location" id="addLocationBtn"><svg><use href="#icon-add-folder"></use></svg><span>Add Location</span></button>
+            </div>
+            <div class="sidebar-section">
+                <button class="section-toggle" data-target="drives">Drives</button>
+                <nav id="drives" class="section-items">
+                    <button class="nav-item" data-path="Root"><svg><use href="#icon-folder-open"></use></svg><span>Root</span></button>
+                    <button class="nav-item" data-path="Network"><svg><use href="#icon-folder"></use></svg><span>Network</span></button>
+                </nav>
+            </div>
+            <div class="sidebar-bottom">
+                <a href="settings.html" class="nav-item" data-view-link="settings"><svg><use href="#icon-settings"></use></svg><span>Settings</span></a>
+            </div>
+        </aside>
+
+        <main class="main-pane">
+            <header class="topbar">
+                <div class="tab-strip" id="tabStrip"></div>
+                <div class="toolbar">
+                    <button class="icon-btn" id="searchToggle" title="Search"><svg><use href="#icon-search"></use></svg></button>
+                    <button class="icon-btn" id="newTabBtn" title="New Tab"><svg><use href="#icon-plus"></use></svg></button>
+                    <button class="icon-btn" id="newWindowBtn" title="New Window"><svg><use href="#icon-split"></use></svg></button>
+                    <button class="icon-btn" id="refreshBtn" title="Refresh"><svg><use href="#icon-refresh"></use></svg></button>
+                    <button class="icon-btn" id="recentsBtn" title="Recent"><svg><use href="#icon-clock"></use></svg></button>
+                    <button class="icon-btn" id="newFolderBtn" title="New Folder"><svg><use href="#icon-add-folder"></use></svg></button>
+                    <button class="icon-btn" id="splitToggle" title="Split Pane"><svg><use href="#icon-split"></use></svg></button>
+                    <button class="icon-btn" id="previewPaneToggle" title="Toggle Preview Pane"><svg><use href="#icon-eye"></use></svg></button>
+                    <button class="icon-btn" id="themeToggle" title="Theme"><svg><use href="#icon-settings"></use></svg></button>
+                </div>
+            </header>
+
+            <div class="address-wrap" id="addressWrap">
+                <button class="icon-btn slim" id="backBtn" title="Back"><svg><use href="#icon-chevron-left"></use></svg></button>
+                <div class="address-bar" id="addressBar" title="Double-click to edit path">
+                    <div id="breadcrumbs" class="breadcrumbs"></div>
+                    <input id="pathInput" class="path-input hidden" aria-label="Path Input" />
+                </div>
+            </div>
+
+            <div class="workspace" id="workspace">
+                <section class="panel hidden" id="explorerPanel">
+                    <div class="panel-toolbar">
+                        <div class="segmented" id="viewModeToggle">
+                            <button data-mode="grid" class="active"><svg><use href="#icon-grid"></use></svg></button>
+                            <button data-mode="list"><svg><use href="#icon-list"></use></svg></button>
+                            <button data-mode="details"><svg><use href="#icon-details"></use></svg></button>
+                        </div>
+                        <div class="status-badges"><span class="badge">Double-click to open</span></div>
+                    </div>
+                    <div class="file-region" id="fileRegion"></div>
+                </section>
+
+                <section class="panel hidden" id="settingsPanel">
+                    <h2>Settings</h2>
+                    <div class="settings-grid">
+                        <label><span>Theme</span><select id="themeSelect"><option value="dark">Dark Monotone</option><option value="light">Light Orange</option></select></label>
+                        <label><span>Sidebar Auto Hide</span><input type="checkbox" id="autoHideCheckbox" checked></label>
+                        <label><span>Show Hidden Files</span><input type="checkbox" id="hiddenCheckbox"></label>
+                        <label><span>Default View</span><select id="defaultViewSelect"><option value="grid">Grid</option><option value="list">List</option><option value="details">Details</option></select></label>
+                        <label><span>Spotlight Shortcut</span><input type="text" id="shortcutSpotlight" value="Ctrl+K" /></label>
+                        <label><span>New Tab Shortcut</span><input type="text" id="shortcutNewTab" value="Ctrl+T" /></label>
+                        <label><span>New Folder Shortcut</span><input type="text" id="shortcutNewFolder" value="Ctrl+N" /></label>
+                        <label><span>Toggle Preview Shortcut</span><input type="text" id="shortcutPreview" value="Ctrl+P" /></label>
+                    </div>
+                </section>
+
+                <section class="panel" id="propertiesPanel">
+                    <h2>Properties</h2>
+                    <div class="properties-table" id="propertiesTable"></div>
+                </section>
+
+                <aside class="preview-pane" id="previewPane">
+                    <div class="preview-header"><span>Preview</span><button class="icon-btn slim" id="previewToggle" title="Toggle Preview"><svg><use href="#icon-eye"></use></svg></button></div>
+                    <div class="preview-body" id="previewBody">Select a file to preview metadata.</div>
+                </aside>
+            </div>
+
+            <footer class="terminal" id="terminalPane">
+                <div class="terminal-head"><svg><use href="#icon-terminal"></use></svg><span>Integrated Terminal</span></div>
+                <div class="terminal-body"><span class="muted" id="cwdLabel">cwd: /Home</span><span>$</span> ls -la</div>
+            </footer>
+        </main>
+    </div>
+
+    <div class="spotlight hidden" id="spotlight">
+        <div class="spotlight-box">
+            <div class="spotlight-input-wrap"><svg><use href="#icon-search"></use></svg><input id="spotlightInput" placeholder="Search files, folders, and commands" /></div>
+            <div class="spotlight-options">
+                <button data-filter="type:folder">type:folder</button>
+                <button data-filter="type:file">type:file</button>
+                <button data-filter="ext:js">ext:js</button>
+                <button data-filter="regex:on">regex:on</button>
+            </div>
+            <div class="spotlight-results" id="spotlightResults"></div>
+        </div>
+    </div>
+
+    <ul class="context-menu hidden" id="contextMenu">
+        <li data-action="open">Open</li>
+        <li data-action="rename">Rename</li>
+        <li data-action="copy">Copy Path</li>
+        <li data-action="properties">Properties</li>
+        <li data-action="delete">Delete</li>
+    </ul>
+
+    <script src="MJSI.js"></script>
+    <script src="scripts.js"></script>
+</body>
+</html>
